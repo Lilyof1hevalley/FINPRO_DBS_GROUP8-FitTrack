@@ -1,159 +1,180 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, Dumbbell, Clock, Weight, ChevronLeft, ChevronRight, Trash2, Calendar } from 'lucide-react'
-import { workoutApi } from '../api'
-import AppLayout from '../components/AppLayout'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { workoutAPI } from '../api/services'
+import TopBar from '../components/TopBar'
+import { Plus, Clock, Zap, Search, SlidersHorizontal, MoreVertical, ArrowRight } from 'lucide-react'
+import styles from './Workouts.module.css'
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+const FEATURED = [
+  {
+    key: 'strength',
+    badge: 'Professional',
+    title: 'Strength Training',
+    desc: 'Build explosive power and muscle endurance with our advanced lifting programs.',
+    duration: '45-60 min',
+    level: 'Hard',
+    grad: 'linear-gradient(135deg, #2a1f08 0%, #6b5210 60%, #c8940d 100%)',
+  },
+  {
+    key: 'cardio',
+    badge: null,
+    title: 'Cardio Blast',
+    desc: 'Improve heart health and burn calories with dynamic high-intensity routines.',
+    duration: '20-30 min',
+    level: 'Moderate',
+    grad: 'linear-gradient(135deg, #1a2a3a 0%, #c97a3a 60%, #f0b86a 100%)',
+  },
+]
+
+function difficultyDots(level) {
+  const map = { Strength: 2, Cardio: 3, Yoga: 1 }
+  return map[level] ?? 2
+}
+
+function relativeDate(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  const diff = Math.floor((Date.now() - d.getTime()) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Yesterday'
+  if (diff < 7) return `${diff} days ago`
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export default function Workouts() {
+  const navigate = useNavigate()
   const [sessions, setSessions] = useState([])
-  const [pagination, setPagination] = useState({ page: 1, total_pages: 1, total: 0 })
   const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState(null)
+  const [search, setSearch] = useState('')
 
-  const load = useCallback(async (page = 1) => {
-    setLoading(true)
-    try {
-      const { data } = await workoutApi.getAll({ page, limit: 10 })
-      setSessions(data.data)
-      setPagination(data.pagination)
-    } catch (_) {}
-    setLoading(false)
+  useEffect(() => {
+    workoutAPI.getSessions({ limit: 20 })
+      .then(res => setSessions(res.data.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load(1) }, [load])
-
-  const handleDelete = async (e, id) => {
-    e.preventDefault()
-    if (!confirm('Delete this workout session?')) return
-    setDeleting(id)
-    try {
-      await workoutApi.remove(id)
-      load(pagination.page)
-    } catch (_) {}
-    setDeleting(null)
-  }
+  const filtered = sessions.filter(s =>
+    !search || (s.title || '').toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <AppLayout>
-      <div className="p-8">
-        <div className="flex items-center justify-between mb-8">
+    <div className={styles.page}>
+      <TopBar active="Activity" />
+
+      <div className={styles.content}>
+        <div className={styles.head}>
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Workouts</h1>
-            <p className="text-text-secondary mt-1 text-sm">
-              {pagination.total} session{pagination.total !== 1 ? 's' : ''} logged
-            </p>
+            <h1>Workout Library</h1>
+            <p>Choose from over 200 professional training routines or create your own custom workout plan designed for your goals.</p>
           </div>
-          <Link to="/workouts/new" className="btn-primary">
-            <Plus size={16} />
-            New Workout
-          </Link>
+          <button className={styles.createBtn} onClick={() => navigate('/workouts/new')}>
+            <Plus size={18} /> Create New Workout
+          </button>
         </div>
 
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="card animate-pulse">
-                <div className="flex justify-between">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-bg-border rounded w-40" />
-                    <div className="h-3 bg-bg-border rounded w-24" />
-                  </div>
-                  <div className="h-4 bg-bg-border rounded w-20" />
+        <div className={styles.featuredGrid}>
+          {FEATURED.map(f => (
+            <div key={f.key} className={styles.featCard} style={{ background: f.grad }}>
+              <div className={styles.featInner}>
+                {f.badge && <span className={styles.featBadge}>{f.badge}</span>}
+                <h2>{f.title}</h2>
+                <p>{f.desc}</p>
+                <div className={styles.featMeta}>
+                  <span><Clock size={15} /> {f.duration}</span>
+                  <span><Zap size={15} /> {f.level}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : sessions.length === 0 ? (
-          <div className="card text-center py-16">
-            <Dumbbell size={40} className="text-text-muted mx-auto mb-4" />
-            <h3 className="text-text-secondary font-medium mb-2">No workouts yet</h3>
-            <p className="text-text-muted text-sm mb-6">Start your first session to build your history.</p>
-            <Link to="/workouts/new" className="btn-primary mx-auto text-sm">
-              <Plus size={14} />
-              Start First Workout
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3">
-              {sessions.map((s) => (
-                <Link
-                  key={s.id}
-                  to={`/workouts/${s.id}`}
-                  className="card block hover:border-accent/30 transition-all duration-200 group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-                      <Dumbbell size={18} className="text-accent" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-text-primary group-hover:text-accent transition-colors truncate">
-                        {s.title || 'Untitled Workout'}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center gap-1 text-xs text-text-muted">
-                          <Calendar size={12} />
-                          {formatDate(s.started_at)}
-                        </span>
-                        {s.duration_min && (
-                          <span className="flex items-center gap-1 text-xs text-text-muted">
-                            <Clock size={12} />
-                            {s.duration_min} min
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6 shrink-0">
-                      <div className="text-right hidden sm:block">
-                        <p className="text-sm font-medium text-text-secondary">{s.total_sets} sets</p>
-                        {parseFloat(s.total_volume_kg) > 0 && (
-                          <p className="text-xs text-text-muted font-mono">{Math.round(parseFloat(s.total_volume_kg)).toLocaleString()} kg</p>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => handleDelete(e, s.id)}
-                        disabled={deleting === s.id}
-                        className="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              ))}
             </div>
+          ))}
+        </div>
 
-            {pagination.total_pages > 1 && (
-              <div className="flex items-center justify-between mt-6">
-                <p className="text-sm text-text-muted">
-                  Page {pagination.page} of {pagination.total_pages}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => load(pagination.page - 1)}
-                    disabled={pagination.page <= 1}
-                    className="btn-secondary py-2 px-3 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    onClick={() => load(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.total_pages}
-                    className="btn-secondary py-2 px-3 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        <div className={styles.wideCard}>
+          <div className={styles.wideInner}>
+            <h2>Mindfulness &amp; Yoga</h2>
+            <p>Recover and restore your body with expert-led mobility and flexibility sessions.</p>
+            <button className={styles.exploreBtn} onClick={() => navigate('/exercises')}>
+              Explore Yoga <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.existingHead}>
+          <h2>Existing Workouts</h2>
+          <div className={styles.tools}>
+            <div className={styles.searchWrap}>
+              <Search size={15} className={styles.searchIcon} />
+              <input
+                placeholder="Search workouts..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <button className={styles.filterBtn}>
+              <SlidersHorizontal size={15} /> Filter
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.tableCard}>
+          {loading ? (
+            <div className={styles.loading}><span className={styles.spinner} /></div>
+          ) : filtered.length === 0 ? (
+            <div className={styles.empty}>
+              <p>No workouts yet. Create your first session to get started.</p>
+            </div>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>WORKOUT NAME</th>
+                  <th>CATEGORY</th>
+                  <th>DURATION</th>
+                  <th>DIFFICULTY</th>
+                  <th>LAST COMPLETED</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(s => {
+                  const cat = s.total_sets > 8 ? 'Strength' : s.duration_min && s.duration_min < 30 ? 'Cardio' : 'Yoga'
+                  const dots = difficultyDots(cat)
+                  return (
+                    <tr key={s.id} onClick={() => navigate(`/workouts/${s.id}`)}>
+                      <td>
+                        <div className={styles.nameCell}>
+                          <div className={styles.thumb} />
+                          <div>
+                            <div className={styles.wName}>{s.title || 'Workout Session'}</div>
+                            <div className={styles.wSub}>
+                              {s.total_sets || 0} exercises • Session
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span className={styles.catPill}>{cat}</span></td>
+                      <td className={styles.muted}>{s.duration_min ? `${s.duration_min} min` : '—'}</td>
+                      <td>
+                        <div className={styles.dots}>
+                          {[0, 1, 2].map(i => (
+                            <span
+                              key={i}
+                              className={styles.dot}
+                              style={{ background: i < dots ? (cat === 'Cardio' ? 'var(--danger)' : 'var(--gold)') : 'var(--border)' }}
+                            />
+                          ))}
+                        </div>
+                      </td>
+                      <td className={styles.muted}>{relativeDate(s.started_at)}</td>
+                      <td><button className={styles.rowMenu}><MoreVertical size={16} /></button></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
-    </AppLayout>
+    </div>
   )
 }

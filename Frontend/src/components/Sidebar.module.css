@@ -1,0 +1,93 @@
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 28px 16px;
+}
+
+.brand {
+  padding: 0 8px;
+  margin-bottom: 32px;
+}
+
+.brandName {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.brandSub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.navItem:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.navItem.active {
+  background: var(--gold-light);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.navItem.active::after {
+  content: '';
+  position: absolute;
+  right: -16px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+
+.accountSection {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upgradeBtn {
+  margin-top: auto;
+  background: var(--gold);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.upgradeBtn:hover {
+  background: var(--gold-dark);
+}

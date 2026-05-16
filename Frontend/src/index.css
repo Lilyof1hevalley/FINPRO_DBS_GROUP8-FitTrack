@@ -1,109 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
-
-  html,
-  body,
-  #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  body {
-    background-color: #080C14;
-    color: #F0F4FF;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #0F1523;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #1E2A3D;
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #22C55E;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-accent text-bg-base font-semibold px-5 py-2.5 rounded-lg hover:bg-accent-light transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
-  }
-
-  .btn-secondary {
-    @apply bg-bg-elevated border border-bg-border text-text-primary font-medium px-5 py-2.5 rounded-lg hover:border-accent/50 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
-  }
-
-  .btn-ghost {
-    @apply text-text-secondary hover:text-text-primary px-4 py-2 rounded-lg hover:bg-bg-elevated transition-all duration-200 inline-flex items-center gap-2;
-  }
-
-  .btn-danger {
-    @apply bg-red-500/10 border border-red-500/30 text-red-400 font-medium px-5 py-2.5 rounded-lg hover:bg-red-500/20 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
-  }
-
-  .card {
-    @apply bg-bg-card border border-bg-border rounded-xl p-6;
-  }
-
-  .input {
-    @apply w-full bg-bg-elevated border border-bg-border text-text-primary placeholder-text-muted rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all duration-200;
-  }
-
-  .label {
-    @apply block text-sm font-medium text-text-secondary mb-1.5;
-  }
-
-  .select {
-    @apply w-full bg-bg-elevated border border-bg-border text-text-primary rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all duration-200 appearance-none cursor-pointer;
-  }
-
-  .stat-card {
-    @apply bg-bg-card border border-bg-border rounded-xl p-5 flex flex-col gap-3;
-  }
-
-  .badge {
-    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
-  }
-
-  .badge-green {
-    @apply badge bg-accent/10 text-accent border border-accent/20;
-  }
-
-  .badge-blue {
-    @apply badge bg-blue-500/10 text-blue-400 border border-blue-500/20;
-  }
-
-  .badge-orange {
-    @apply badge bg-orange-500/10 text-orange-400 border border-orange-500/20;
-  }
+:root {
+  --gold: #7a6010;
+  --gold-mid: #c8940d;
+  --gold-dark: #5a4208;
+  --gold-light: #f5eed6;
+  --bg: #f2efe9;
+  --surface: #ffffff;
+  --surface-2: #f9f7f3;
+  --border: #e8e5df;
+  --text: #1a1714;
+  --text-2: #6b6460;
+  --text-3: #9a9590;
+  --danger: #c0392b;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
 }
 
-@layer utilities {
-  .glow-green {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
 
-  .text-gradient {
-    background: linear-gradient(135deg, #22C55E, #4ADE80);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  color: var(--text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.3;
 }

@@ -1,0 +1,72 @@
+.page { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); }
+
+.topNav { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.navTabs { display: flex; gap: 4px; }
+.navTab { background: none; border: none; padding: 8px 16px; font-size: 14px; color: var(--text-2); cursor: pointer; font-weight: 500; }
+.navRight { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+.avatar { width: 32px; height: 32px; background: var(--gold); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+
+.content { display: flex; gap: 24px; padding: 28px 32px; flex: 1; }
+.mainCol { flex: 1; min-width: 0; }
+.sideCol { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.mainCol h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+.subtitle { font-size: 14px; color: var(--text-2); margin-top: 6px; margin-bottom: 20px; line-height: 1.5; max-width: 480px; }
+
+.levelTabs { display: flex; gap: 2px; margin-bottom: 20px; }
+.levelTab { padding: 7px 20px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 500; color: var(--text-2); background: none; cursor: pointer; }
+.levelActive { background: var(--surface); border-color: var(--text); color: var(--text); font-weight: 600; }
+
+.loading { display: flex; justify-content: center; padding: 60px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.featuredCard { border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow-lg); }
+.featuredImg { position: relative; min-height: 260px; background: #3d3000; }
+.featuredImg img { width: 100%; height: 260px; object-fit: cover; opacity: 0.5; }
+.featuredOverlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); }
+.nextLabel { font-size: 10px; font-weight: 700; color: var(--gold-mid); letter-spacing: 0.1em; }
+.featuredOverlay h2 { font-size: 26px; font-weight: 800; color: white; margin: 6px 0 8px; }
+.featuredOverlay p { font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 12px; line-height: 1.5; }
+.featuredMeta { display: flex; gap: 20px; font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+.startBtn { display: inline-block; background: var(--gold); color: white; padding: 10px 22px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; text-decoration: none; }
+.startBtn:hover { background: var(--gold-dark); }
+
+.emptyFeatured { background: var(--surface); border-radius: var(--radius); padding: 40px; text-align: center; color: var(--text-3); font-size: 14px; margin-bottom: 20px; }
+
+.videoGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.videoCard { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); text-decoration: none; overflow: hidden; display: flex; flex-direction: column; }
+.videoCard:hover { box-shadow: var(--shadow-lg); }
+.videoThumb { height: 120px; background: #e8e5df; overflow: hidden; }
+.videoThumb img { width: 100%; height: 100%; object-fit: cover; }
+.videoInfo { padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.videoTitle { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.videoDesc { font-size: 11px; color: var(--text-2); line-height: 1.4; flex: 1; }
+.videoLevel { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.levelBadge { font-size: 10px; color: var(--text-3); }
+.addBtn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); background: none; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-2); cursor: pointer; }
+
+.noVideos { grid-column: 1/-1; text-align: center; color: var(--text-3); font-size: 14px; padding: 32px; }
+
+.progressBanner { background: var(--gold-light); border-radius: var(--radius-lg); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
+.progressBanner h3 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.progressBanner p { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
+.bannerStats { display: flex; gap: 24px; }
+.bannerVal { display: block; font-size: 20px; font-weight: 700; color: var(--text); }
+.bannerLabel { font-size: 10px; font-weight: 700; color: var(--text-3); letter-spacing: 0.06em; }
+
+.insightCard { background: #3d3000; border-radius: var(--radius); padding: 18px; }
+.insightCard h3 { font-size: 14px; font-weight: 600; color: white; margin-bottom: 8px; }
+.insightCard p { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+
+.mealCard { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); display: flex; gap: 12px; }
+.mealIcon { font-size: 20px; }
+.mealCard h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.mealCard p { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.recipeLink { font-size: 12px; color: var(--gold); font-weight: 600; margin-top: 8px; display: block; }
+
+.muscleFilter { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.muscleFilter h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.muscleButtons { display: flex; flex-wrap: wrap; gap: 6px; }
+.muscleBtn { padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; color: var(--text-2); background: none; cursor: pointer; }
+.muscleBtnActive { background: var(--gold-light); border-color: var(--gold); color: var(--gold); font-weight: 600; }

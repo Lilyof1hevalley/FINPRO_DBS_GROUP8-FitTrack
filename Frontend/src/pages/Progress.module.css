@@ -1,0 +1,65 @@
+.page { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); }
+
+.content { padding: 32px 36px; }
+
+.head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+.head h1 { font-size: 28px; font-weight: 700; color: var(--text); }
+.head p { font-size: 14px; color: var(--text-2); margin-top: 6px; }
+
+.headBtns { display: flex; gap: 12px; }
+.rangeBtn { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); font-size: 13px; color: var(--text-2); cursor: pointer; }
+.rangeBtn:hover { border-color: var(--gold); }
+.exportBtn { display: flex; align-items: center; gap: 8px; padding: 11px 20px; border: none; border-radius: 24px; background: var(--gold); color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
+.exportBtn:hover { background: var(--gold-dark); }
+
+.loading { display: flex; justify-content: center; padding: 80px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.topGrid { display: grid; grid-template-columns: 1fr 320px; gap: 22px; margin-bottom: 22px; }
+
+.chartCard { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+.chartHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.chartHead h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+.legend { display: flex; gap: 18px; font-size: 12px; color: var(--text-2); }
+.legend span { display: flex; align-items: center; gap: 7px; }
+.legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+.prCol { display: flex; flex-direction: column; gap: 16px; }
+.prCard { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.prTop { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.prLabel { font-size: 11px; font-weight: 700; color: var(--text-3); letter-spacing: 0.06em; }
+.prIcon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.prVal { font-size: 30px; font-weight: 800; color: var(--gold); }
+.prVal small { font-size: 14px; font-weight: 500; color: var(--text-2); }
+.prTrend { font-size: 12px; font-weight: 600; margin-top: 6px; }
+
+.midGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 36px; }
+
+.card { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+.cardHead { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.card h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+.cardSub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+.toggle { display: flex; background: var(--surface-2); border-radius: 8px; padding: 3px; }
+.toggleBtn { background: none; border: none; padding: 6px 16px; font-size: 13px; color: var(--text-2); cursor: pointer; border-radius: 6px; }
+.toggleActive { background: var(--surface); border: 1px solid var(--border); padding: 6px 16px; font-size: 13px; font-weight: 600; color: var(--gold); cursor: pointer; border-radius: 6px; }
+
+.heatGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 8px 0 18px; }
+.heatCell { aspect-ratio: 1; border-radius: 6px; }
+.heatLegend { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-3); justify-content: flex-end; }
+.heatDots { display: flex; gap: 4px; }
+.heatDots i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.heatNote { font-size: 13px; color: var(--text-2); text-align: center; margin-top: 16px; }
+.heatNote b { color: var(--text); }
+
+.recoveryTitle { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+.recoveryGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.recCard { background: var(--surface); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.recHead { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.recIcon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.recName { font-size: 14px; font-weight: 700; color: var(--text); }
+.recAvg { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.recBar { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+.recFill { height: 100%; border-radius: 4px; }
+.recNote { font-size: 12px; color: var(--text-2); }
