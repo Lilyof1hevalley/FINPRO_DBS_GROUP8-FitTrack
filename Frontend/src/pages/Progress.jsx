@@ -1,18 +1,10 @@
 import { useEffect, useState } from 'react'
 import { progressAPI } from '../api/services'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { Calendar, Download, Dumbbell, Activity, Zap } from 'lucide-react'
+import { Calendar, Download, Dumbbell } from 'lucide-react'
 import styles from './Progress.module.css'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-function findPR(records, names) {
-  for (const n of names) {
-    const r = records.find(x => x.exercise_name?.toLowerCase().includes(n))
-    if (r) return r
-  }
-  return null
-}
 
 export default function Progress() {
   const [records, setRecords] = useState([])
@@ -35,31 +27,29 @@ export default function Progress() {
         bench: Math.round(parseFloat(d.total_volume_kg) / 50) || 0,
         squat: Math.round(parseFloat(d.total_volume_kg) / 70) || 0,
       }))
-      setStrengthData(vol)
+
+      const strengthDataFinal = vol.length === 1
+        ? [{ week: 'Beginning', bench: 0, squat: 0 }, { ...vol[0], week: 'Recent' }]
+        : vol.length === 0
+        ? [{ week: 'Beginning', bench: 0, squat: 0 }, { week: 'Recent', bench: 0, squat: 0 }]
+        : vol
+
+      setStrengthData(strengthDataFinal)
 
       setVolume(DAYS.map((day, i) => {
         const f = freqRes.data[i]
-        return { day, value: f ? parseInt(f.total_minutes) || 0 : 0 }
+        return { day, value: f ? parseInt(f.session_count) || 0 : 0 }
       }))
       setFrequency(freqRes.data)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
-  const benchPR = findPR(records, ['bench'])
-  const squatPR = findPR(records, ['squat'])
-  const deadPR  = findPR(records, ['deadlift', 'dead'])
-
-  const prCards = [
-    { label: 'BENCH PRESS PR', pr: benchPR, val: benchPR?.max_weight_kg, Icon: Dumbbell, iconBg: 'var(--gold-light)' },
-    { label: 'SQUAT PR',       pr: squatPR, val: squatPR?.max_weight_kg, Icon: Activity, iconBg: 'var(--surface-2)' },
-    { label: 'DEADLIFT PR',    pr: deadPR,  val: deadPR?.max_weight_kg,  Icon: Zap,      iconBg: '#fdeceb' },
-  ]
-
   const heatCells = Array.from({ length: 28 }, (_, i) => {
-    const f = frequency[i % Math.max(frequency.length, 1)]
+    const f = frequency[i]
     const c = f ? parseInt(f.session_count) : 0
     return Math.min(4, c)
   })
+
   const heatColors = ['#ece8df', '#cfc7a8', '#a89868', '#7a6010', '#5a4208']
   const trainedDays = heatCells.filter(c => c > 0).length
 
@@ -90,43 +80,55 @@ export default function Progress() {
                     <span><i style={{ background: 'var(--text-2)' }} /> Squat</span>
                   </div>
                 </div>
-                {strengthData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={strengthData}>
-                      <defs>
-                        <linearGradient id="benchG" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="week" hide />
-                      <YAxis tick={{ fontSize: 11, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={28} />
-                      <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }} />
-                      <Area type="monotone" dataKey="bench" stroke="var(--gold)" strokeWidth={3} fill="url(#benchG)" />
-                      <Area type="monotone" dataKey="squat" stroke="var(--text-2)" strokeWidth={2} strokeDasharray="6 4" fill="none" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className={styles.emptyChart}>No workout data yet. Start logging to see your strength progress.</div>
-                )}
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={strengthData}>
+                    <defs>
+                      <linearGradient id="benchG" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.25} />
+                        <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="week" tick={{ fontSize: 11, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || label === 'Beginning') return null
+                        return (
+                          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+                            <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
+                            {payload.map((p, i) => (
+                              <p key={i} style={{ color: p.stroke }}>{p.name}: {p.value}</p>
+                            ))}
+                          </div>
+                        )
+                      }}
+                    />
+                    <Area type="monotone" dataKey="bench" stroke="var(--gold)" strokeWidth={3} fill="url(#benchG)" dot={false} />
+                    <Area type="monotone" dataKey="squat" stroke="var(--text-2)" strokeWidth={2} strokeDasharray="6 4" fill="none" dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
 
               <div className={styles.prCol}>
-                {prCards.map(c => (
-                  <div key={c.label} className={styles.prCard}>
+                {records.length > 0 ? records.map((r, i) => (
+                  <div key={i} className={styles.prCard}>
                     <div className={styles.prTop}>
-                      <span className={styles.prLabel}>{c.label}</span>
-                      <div className={styles.prIcon} style={{ background: c.iconBg }}>
-                        <c.Icon size={16} color="var(--gold)" />
+                      <span className={styles.prLabel}>{r.exercise_name?.toUpperCase()} PR</span>
+                      <div className={styles.prIcon} style={{ background: 'var(--gold-light)' }}>
+                        <Dumbbell size={16} color="var(--gold)" />
                       </div>
                     </div>
-                    {c.val ? (
-                      <div className={styles.prVal}>{c.val} <small>kg</small></div>
-                    ) : (
-                      <div className={styles.prEmpty}>No data yet</div>
-                    )}
+                    <div className={styles.prVal}>{r.max_weight_kg} <small>kg</small></div>
+                    <div className={styles.prTrend} style={{ color: 'var(--text-3)' }}>
+                      {r.reps_at_max} reps · {new Date(r.last_performed).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
                   </div>
-                ))}
+                )) : (
+                  <div className={styles.prCard}>
+                    <p style={{ color: 'var(--text-3)', fontSize: 13 }}>No personal records yet. Start logging workouts!</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -135,7 +137,7 @@ export default function Progress() {
                 <div className={styles.cardHead}>
                   <div>
                     <h2>Weekly Training Volume</h2>
-                    <p className={styles.cardSub}>Total weight moved per session (kg)</p>
+                    <p className={styles.cardSub}>Number of sessions per day</p>
                   </div>
                   <div className={styles.toggle}>
                     {['Sets', 'Volume'].map(m => (

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { exerciseAPI } from '../api/services'
-import { useAuth } from '../context/AuthContext'
-import { Bell, Settings, Search, SlidersHorizontal, Heart, Dumbbell, Clock, ChevronDown } from 'lucide-react'
+import { Search, SlidersHorizontal, Heart, Dumbbell, Clock, ChevronDown } from 'lucide-react'
 import styles from './Exercises.module.css'
 
-const TABS = ['Overview', 'Library', 'My Routines']
 const MUSCLES = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
 
 const GRADIENTS = [
@@ -34,12 +32,10 @@ function equipmentFor(ex) {
 }
 
 export default function Exercises() {
-  const { user } = useAuth()
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [muscle, setMuscle] = useState('All')
-  const [tab, setTab] = useState('Overview')
   const [favorites, setFavorites] = useState({})
   const [limit, setLimit] = useState(6)
 
@@ -63,22 +59,12 @@ export default function Exercises() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.topLeft}>
-          <h2 className={styles.pageName}>Exercises</h2>
-          <nav className={styles.tabs}>
-            {TABS.map(t => (
-              <button
-                key={t}
-                className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
-                onClick={() => setTab(t)}
-              >
-                {t}
-              </button>
-            ))}
-          </nav>
-        </div>
-        <div className={styles.topRight}>
+      <div className={styles.content}>
+        <div className={styles.head}>
+          <div>
+            <h1>Exercises</h1>
+            <p>Browse and filter exercises by muscle group.</p>
+          </div>
           <div className={styles.searchTop}>
             <Search size={15} className={styles.searchIcon} />
             <input
@@ -87,16 +73,6 @@ export default function Exercises() {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <button className={styles.iconBtn}><Bell size={18} /></button>
-          <button className={styles.iconBtn}><Settings size={18} /></button>
-          <div className={styles.avatar}>{(user?.full_name || user?.username || 'U')[0].toUpperCase()}</div>
-        </div>
-      </header>
-
-      <div className={styles.content}>
-        <div className={styles.head}>
-          <h1>Target Muscle Group</h1>
-          <button className={styles.filterAll}>Filter All <SlidersHorizontal size={15} /></button>
         </div>
 
         <div className={styles.pills}>

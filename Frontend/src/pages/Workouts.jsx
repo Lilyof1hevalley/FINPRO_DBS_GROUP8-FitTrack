@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { workoutAPI } from '../api/services'
-import TopBar from '../components/TopBar'
 import { Plus, Clock, Zap, Search, SlidersHorizontal, MoreVertical, ArrowRight } from 'lucide-react'
 import styles from './Workouts.module.css'
 
@@ -60,8 +59,6 @@ export default function Workouts() {
 
   return (
     <div className={styles.page}>
-      <TopBar active="Activity" />
-
       <div className={styles.content}>
         <div className={styles.head}>
           <div>

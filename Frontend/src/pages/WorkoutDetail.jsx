@@ -2,15 +2,14 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { workoutAPI, exerciseAPI } from '../api/services'
 import { useAuth } from '../context/AuthContext'
-import { Bell, Timer, Heart, Dumbbell, Check, CheckCircle2, Plus, History, Lightbulb } from 'lucide-react'
+import { Bell, Timer, Dumbbell, Check, CheckCircle2, Plus, History, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import styles from './WorkoutDetail.module.css'
 
 function fmt(sec) {
-  const h = String(Math.floor(sec / 3600)).padStart(2, '0')
-  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0')
+  const m = String(Math.floor(sec / 60)).padStart(2, '0')
   const s = String(sec % 60).padStart(2, '0')
-  return `${h}:${m}:${s}`
+  return `${m}:${s}`
 }
 
 function fmtRest(sec) {
@@ -74,7 +73,7 @@ export default function WorkoutDetail() {
   const totalVolume = logs.reduce((sum, l) => sum + (parseFloat(l.weight_kg) || 0) * (parseInt(l.reps) || 0), 0)
   const workSets = logs.length
   const targetSets = Math.max(workSets, 12)
-  const progress = Math.min(100, Math.round((Object.keys(done).filter(k => done[k]).length / Math.max(rows.length, 1)) * 100)) || 65
+  const progress = Math.min(100, Math.round((Object.keys(done).filter(k => done[k]).length / Math.max(rows.length, 1)) * 100)) || 0
 
   const toggleDone = (key) => setDone(d => ({ ...d, [key]: !d[key] }))
 
@@ -133,15 +132,8 @@ export default function WorkoutDetail() {
             <div className={styles.statCard}>
               <div className={styles.statIcon}><Timer size={18} color="var(--gold)" /></div>
               <div>
-                <span className={styles.statLabel}>Avg Rest</span>
-                <span className={styles.statVal}>90s</span>
-              </div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={`${styles.statIcon} ${styles.iconRed}`}><Heart size={18} color="var(--danger)" /></div>
-              <div>
-                <span className={styles.statLabel}>Heart Rate</span>
-                <span className={styles.statVal}>138 bpm</span>
+                <span className={styles.statLabel}>Duration</span>
+                <span className={styles.statVal}>{session.duration_min ?? Math.floor(elapsed / 60)} min</span>
               </div>
             </div>
             <div className={styles.statCard}>
@@ -149,6 +141,13 @@ export default function WorkoutDetail() {
               <div>
                 <span className={styles.statLabel}>Total Volume</span>
                 <span className={styles.statVal}>{totalVolume ? totalVolume.toLocaleString() : '0'} kg</span>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}><CheckCircle2 size={18} color="var(--gold)" /></div>
+              <div>
+                <span className={styles.statLabel}>Sets Done</span>
+                <span className={styles.statVal}>{workSets}</span>
               </div>
             </div>
           </div>
@@ -237,9 +236,9 @@ export default function WorkoutDetail() {
           <div className={styles.formCard}>
             <div className={styles.formHead}>
               <div className={styles.formIcon}><Lightbulb size={18} color="var(--gold)" /></div>
-              <h3>Form Check</h3>
+              <h3>Tips</h3>
             </div>
-            <p>Focus on keeping your elbows tucked at a 45-degree angle during the dumbbell press to protect your rotator cuffs and maximize chest engagement.</p>
+            <p>Stay hydrated and rest between sets. Log your weight and reps accurately for better progress tracking.</p>
           </div>
 
           <div className={styles.progCard}>
@@ -258,7 +257,7 @@ export default function WorkoutDetail() {
               </div>
               <div className={styles.progStat}>
                 <span className={styles.progStatLabel}>Cals Burned</span>
-                <span className={styles.progStatVal}>{Math.round(elapsed / 8) || 312}</span>
+                <span className={styles.progStatVal}>{Math.round(elapsed / 8)}</span>
               </div>
             </div>
           </div>

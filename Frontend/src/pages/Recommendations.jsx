@@ -113,12 +113,11 @@ export default function Recommendations() {
                     <div className={styles.featuredOverlay}>
                       <span className={styles.nextLabel}>RECOMMENDED FOR YOU</span>
                       <h2>{featured.title}</h2>
-                      <p>{featured.description}</p>
-                      {featured.url && (
-                        <a href={featured.url} target="_blank" rel="noopener noreferrer" className={styles.startBtn}>
-                          Watch Playlist
-                        </a>
-                      )}
+                      <p>{featured.channel}</p>
+                      <p>{featured.channel}</p>
+                      <a href={`https://www.youtube.com/watch?v=${featured.video_id}`} target="_blank" rel="noopener noreferrer" className={styles.startBtn}>
+                        Watch Now
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -131,13 +130,13 @@ export default function Recommendations() {
               {/* Additional playlist cards */}
               <div className={styles.videoGrid}>
                 {rest.map((v, i) => (
-                  <a key={i} href={v.url} target="_blank" rel="noopener noreferrer" className={styles.videoCard}>
+                  <a key={i} href={`https://www.youtube.com/watch?v=${v.video_id}`} target="_blank" rel="noopener noreferrer" className={styles.videoCard}>
                     <div className={styles.videoThumb}>
                       {v.thumbnail && <img src={v.thumbnail} alt={v.title} />}
                     </div>
                     <div className={styles.videoInfo}>
                       <div className={styles.videoTitle}>{v.title}</div>
-                      <div className={styles.videoDesc}>{v.description}</div>
+                      <div className={styles.videoDesc}>{v.channel}</div>
                       <div className={styles.videoLevel}>
                         <span className={styles.levelBadge}>{activeLevel}</span>
                       </div>
