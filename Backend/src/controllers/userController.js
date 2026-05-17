@@ -9,7 +9,9 @@ const getProfile = async (req, res, next) => {
        FROM users WHERE id = $1`,
       [req.user.id]
     );
+    
     if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    
     return res.json(rows[0]);
   } catch (err) {
     next(err);
@@ -88,4 +90,15 @@ const getStats = async (req, res, next) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, getStats };
+// DELETE /api/users/me — delete user account
+const deleteAccount = async (req, res, next) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+    
+    res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getProfile, updateProfile, getStats, deleteAccount };

@@ -79,7 +79,7 @@ export default function Login() {
             <div className={styles.field}>
               <div className={styles.fieldRow}>
                 <label>Password</label>
-                <a href="#" className={styles.forgot}>Forgot password?</a>
+                <Link to="/forgot-password" className={styles.forgot}>Forgot password?</Link>
               </div>
               <div className={styles.inputWrap}>
                 <Lock size={15} className={styles.inputIcon} />

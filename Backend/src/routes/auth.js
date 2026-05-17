@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, googleLogin } = require('../controllers/authController');
+const { register, login, googleLogin, forgotPassword, resetPassword } = require('../controllers/authController');
 const { validate } = require('../middleware/errorHandler');
 
 const router = express.Router();
@@ -26,7 +26,11 @@ router.post('/login',
   login
 );
 
-// Tambahan baru
+// Google OAuth
 router.post('/google', googleLogin);
+
+// Password Reset Routes
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;

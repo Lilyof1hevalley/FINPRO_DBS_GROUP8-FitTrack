@@ -4,12 +4,15 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   register: (data) => api.post('/auth/register', data),
   googleLogin: (accessToken) => api.post('/auth/google', { accessToken }),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
 }
 
 export const userAPI = {
   getProfile: () => api.get('/users/me'),
   updateProfile: (data) => api.patch('/users/me', data),
   getStats: () => api.get('/users/me/stats'),
+  deleteAccount: () => api.delete('/users/me'),
 }
 
 export const workoutAPI = {

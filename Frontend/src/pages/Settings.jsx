@@ -89,7 +89,17 @@ export default function Settings() {
               </button>
               <button
                 style={{ background: 'none', border: '1.5px solid #e24b4a', color: '#e24b4a', borderRadius: 10, padding: '13px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-                onClick={() => toast.error('Please contact support to delete your account.')}
+                onClick={async () => {
+                  if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    try {
+                      await userAPI.deleteAccount();
+                      toast.success('Account deleted successfully');
+                      handleLogout(); // Log out otomatis setelah akun dihapus
+                    } catch (err) {
+                      toast.error('Failed to delete account');
+                    }
+                  }
+                }}
               >
                 <Trash2 size={14} />
                 Delete Account
