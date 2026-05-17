@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { progressAPI } from '../api/services'
-import TopBar from '../components/TopBar'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { Calendar, Download, Dumbbell, Activity, Zap, Moon, HeartPulse, Beef } from 'lucide-react'
+import { Calendar, Download, Dumbbell, Activity, Zap } from 'lucide-react'
 import styles from './Progress.module.css'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -30,17 +29,17 @@ export default function Progress() {
       progressAPI.workoutFrequency({ weeks: 12 }),
     ]).then(([prRes, volRes, freqRes]) => {
       setRecords(prRes.data)
-      const vol = volRes.data.map((d, i) => ({
+
+      const vol = volRes.data.map(d => ({
         week: new Date(d.week_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        bench: Math.round(parseFloat(d.total_volume_kg) / 50) || (40 + i * 8),
-        squat: Math.round(parseFloat(d.total_volume_kg) / 70) || (30 + i * 6),
+        bench: Math.round(parseFloat(d.total_volume_kg) / 50) || 0,
+        squat: Math.round(parseFloat(d.total_volume_kg) / 70) || 0,
       }))
-      setStrengthData(vol.length ? vol : DAYS.map((d, i) => ({
-        week: d, bench: 60 + Math.round(40 * Math.abs(Math.sin(i))), squat: 40 + Math.round(30 * Math.abs(Math.sin(i + 1))),
-      })))
+      setStrengthData(vol)
+
       setVolume(DAYS.map((day, i) => {
         const f = freqRes.data[i]
-        return { day, value: f ? parseInt(f.total_minutes) || (200 + i * 30) : (200 + (i % 4) * 80) }
+        return { day, value: f ? parseInt(f.total_minutes) || 0 : 0 }
       }))
       setFrequency(freqRes.data)
     }).catch(() => {}).finally(() => setLoading(false))
@@ -48,26 +47,24 @@ export default function Progress() {
 
   const benchPR = findPR(records, ['bench'])
   const squatPR = findPR(records, ['squat'])
-  const deadPR = findPR(records, ['deadlift', 'dead'])
+  const deadPR  = findPR(records, ['deadlift', 'dead'])
+
+  const prCards = [
+    { label: 'BENCH PRESS PR', pr: benchPR, val: benchPR?.max_weight_kg, Icon: Dumbbell, iconBg: 'var(--gold-light)' },
+    { label: 'SQUAT PR',       pr: squatPR, val: squatPR?.max_weight_kg, Icon: Activity, iconBg: 'var(--surface-2)' },
+    { label: 'DEADLIFT PR',    pr: deadPR,  val: deadPR?.max_weight_kg,  Icon: Zap,      iconBg: '#fdeceb' },
+  ]
 
   const heatCells = Array.from({ length: 28 }, (_, i) => {
     const f = frequency[i % Math.max(frequency.length, 1)]
-    const c = f ? parseInt(f.session_count) : (i * 7) % 5
+    const c = f ? parseInt(f.session_count) : 0
     return Math.min(4, c)
   })
   const heatColors = ['#ece8df', '#cfc7a8', '#a89868', '#7a6010', '#5a4208']
   const trainedDays = heatCells.filter(c => c > 0).length
 
-  const prCards = [
-    { label: 'BENCH PRESS PR', pr: benchPR, val: benchPR?.max_weight_kg ?? 105, Icon: Dumbbell, trend: '+5kg this month', trendColor: '#2e7d32', iconBg: 'var(--gold-light)' },
-    { label: 'SQUAT PR', pr: squatPR, val: squatPR?.max_weight_kg ?? 145, Icon: Activity, trend: 'Maintained status', trendColor: 'var(--text-3)', iconBg: 'var(--surface-2)' },
-    { label: 'DEADLIFT PR', pr: deadPR, val: deadPR?.max_weight_kg ?? 180, Icon: Zap, trend: '+12kg this month', trendColor: '#2e7d32', iconBg: '#fdeceb' },
-  ]
-
   return (
     <div className={styles.page}>
-      <TopBar active="Goals" />
-
       <div className={styles.content}>
         <div className={styles.head}>
           <div>
@@ -93,21 +90,25 @@ export default function Progress() {
                     <span><i style={{ background: 'var(--text-2)' }} /> Squat</span>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={strengthData}>
-                    <defs>
-                      <linearGradient id="benchG" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.25} />
-                        <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="week" hide />
-                    <YAxis tick={{ fontSize: 11, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={28} />
-                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }} />
-                    <Area type="monotone" dataKey="bench" stroke="var(--gold)" strokeWidth={3} fill="url(#benchG)" />
-                    <Area type="monotone" dataKey="squat" stroke="var(--text-2)" strokeWidth={2} strokeDasharray="6 4" fill="none" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {strengthData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={strengthData}>
+                      <defs>
+                        <linearGradient id="benchG" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="week" hide />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }} />
+                      <Area type="monotone" dataKey="bench" stroke="var(--gold)" strokeWidth={3} fill="url(#benchG)" />
+                      <Area type="monotone" dataKey="squat" stroke="var(--text-2)" strokeWidth={2} strokeDasharray="6 4" fill="none" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className={styles.emptyChart}>No workout data yet. Start logging to see your strength progress.</div>
+                )}
               </div>
 
               <div className={styles.prCol}>
@@ -119,8 +120,11 @@ export default function Progress() {
                         <c.Icon size={16} color="var(--gold)" />
                       </div>
                     </div>
-                    <div className={styles.prVal}>{c.val} <small>kg</small></div>
-                    <div className={styles.prTrend} style={{ color: c.trendColor }}>{c.trend}</div>
+                    {c.val ? (
+                      <div className={styles.prVal}>{c.val} <small>kg</small></div>
+                    ) : (
+                      <div className={styles.prEmpty}>No data yet</div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -167,45 +171,6 @@ export default function Progress() {
                   <span>More</span>
                 </div>
                 <p className={styles.heatNote}>You have trained <b>{trainedDays} days</b> out of the last 28.</p>
-              </div>
-            </div>
-
-            <h2 className={styles.recoveryTitle}>Recovery Insights</h2>
-            <div className={styles.recoveryGrid}>
-              <div className={styles.recCard}>
-                <div className={styles.recHead}>
-                  <div className={styles.recIcon} style={{ background: '#e8eefb' }}><Moon size={16} color="#3b6fd6" /></div>
-                  <div>
-                    <div className={styles.recName}>Sleep Quality</div>
-                    <div className={styles.recAvg}>Avg. 7h 45m</div>
-                  </div>
-                </div>
-                <div className={styles.recBar}><div className={styles.recFill} style={{ width: '72%', background: '#3b6fd6' }} /></div>
-                <p className={styles.recNote}>Optimal recovery range reached 5/7 days.</p>
-              </div>
-
-              <div className={styles.recCard}>
-                <div className={styles.recHead}>
-                  <div className={styles.recIcon} style={{ background: '#fdeae0' }}><HeartPulse size={16} color="#e07a3a" /></div>
-                  <div>
-                    <div className={styles.recName}>Heart Rate Var.</div>
-                    <div className={styles.recAvg}>Avg. 62ms</div>
-                  </div>
-                </div>
-                <div className={styles.recBar}><div className={styles.recFill} style={{ width: '60%', background: '#e07a3a' }} /></div>
-                <p className={styles.recNote}>Balanced nervous system detected.</p>
-              </div>
-
-              <div className={styles.recCard}>
-                <div className={styles.recHead}>
-                  <div className={styles.recIcon} style={{ background: '#e6f4ea' }}><Beef size={16} color="#2e7d32" /></div>
-                  <div>
-                    <div className={styles.recName}>Protein Intake</div>
-                    <div className={styles.recAvg}>Avg. 165g/day</div>
-                  </div>
-                </div>
-                <div className={styles.recBar}><div className={styles.recFill} style={{ width: '90%', background: '#2e7d32' }} /></div>
-                <p className={styles.recNote}>High adherence to muscle repair goals.</p>
               </div>
             </div>
           </>

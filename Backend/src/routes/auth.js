@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login } = require('../controllers/authController');
+const { register, login, googleLogin } = require('../controllers/authController');
 const { validate } = require('../middleware/errorHandler');
 
 const router = express.Router();
@@ -25,5 +25,8 @@ router.post('/login',
   validate,
   login
 );
+
+// Tambahan baru
+router.post('/google', googleLogin);
 
 module.exports = router;

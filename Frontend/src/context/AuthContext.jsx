@@ -5,15 +5,15 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('fittrack_user')) } catch { return null }
+    try { return JSON.parse(sessionStorage.getItem('fittrack_user')) } catch { return null }
   })
-  const [token, setToken] = useState(() => localStorage.getItem('fittrack_token'))
+  const [token, setToken] = useState(() => sessionStorage.getItem('fittrack_token'))
 
   const login = useCallback(async (email, password) => {
     const res = await authAPI.login({ email, password })
     const { user, token } = res.data
-    localStorage.setItem('fittrack_token', token)
-    localStorage.setItem('fittrack_user', JSON.stringify(user))
+    sessionStorage.setItem('fittrack_token', token)
+    sessionStorage.setItem('fittrack_user', JSON.stringify(user))
     setUser(user)
     setToken(token)
     return user
@@ -22,16 +22,26 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (payload) => {
     const res = await authAPI.register(payload)
     const { user, token } = res.data
-    localStorage.setItem('fittrack_token', token)
-    localStorage.setItem('fittrack_user', JSON.stringify(user))
+    sessionStorage.setItem('fittrack_token', token)
+    sessionStorage.setItem('fittrack_user', JSON.stringify(user))
+    setUser(user)
+    setToken(token)
+    return user
+  }, [])
+
+  const googleLogin = useCallback(async (accessToken) => {
+    const res = await authAPI.googleLogin(accessToken)
+    const { user, token } = res.data
+    sessionStorage.setItem('fittrack_token', token)
+    sessionStorage.setItem('fittrack_user', JSON.stringify(user))
     setUser(user)
     setToken(token)
     return user
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('fittrack_token')
-    localStorage.removeItem('fittrack_user')
+    sessionStorage.removeItem('fittrack_token')
+    sessionStorage.removeItem('fittrack_user')
     setUser(null)
     setToken(null)
   }, [])
@@ -39,13 +49,13 @@ export function AuthProvider({ children }) {
   const updateUser = useCallback((data) => {
     setUser(prev => {
       const updated = { ...prev, ...data }
-      localStorage.setItem('fittrack_user', JSON.stringify(updated))
+      sessionStorage.setItem('fittrack_user', JSON.stringify(updated))
       return updated
     })
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, updateUser, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, register, googleLogin, logout, updateUser, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   )

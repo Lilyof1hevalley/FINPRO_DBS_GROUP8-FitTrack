@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { userAPI } from '../api/services'
-import TopBar from '../components/TopBar'
 import toast from 'react-hot-toast'
 import { User, Ruler, Dumbbell, Lock, RefreshCw } from 'lucide-react'
 import styles from './Profile.module.css'
@@ -76,8 +75,6 @@ export default function Profile() {
 
   return (
     <div className={styles.page}>
-      <TopBar active="Overview" />
-
       <div className={styles.content}>
         <div className={styles.head}>
           <h1>Profile Settings</h1>
@@ -91,9 +88,6 @@ export default function Profile() {
             </div>
             <div className={styles.pName}>{form.full_name || user?.username}</div>
             <div className={styles.pEmail}>{user?.email}</div>
-
-            <button className={styles.uploadBtn}>Upload New Photo</button>
-            <button className={styles.removeBtn}>Remove Photo</button>
 
             <div className={styles.divider} />
 
@@ -186,7 +180,7 @@ export default function Profile() {
             <div className={styles.infoIcon}><RefreshCw size={16} color="var(--gold)" /></div>
             <div>
               <h3>Auto-Synchronization</h3>
-              <p>Changes here will update your macro goals instantly.</p>
+              <p>Changes here will update your recommendations instantly.</p>
             </div>
           </div>
         </div>

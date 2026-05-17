@@ -16,6 +16,11 @@
 .levelTabs { display: flex; gap: 2px; margin-bottom: 20px; }
 .levelTab { padding: 7px 20px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 500; color: var(--text-2); background: none; cursor: pointer; }
 .levelActive { background: var(--surface); border-color: var(--text); color: var(--text); font-weight: 600; }
+.levelDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 .loading { display: flex; justify-content: center; padding: 60px; }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; display: block; }
@@ -70,3 +75,52 @@
 .muscleButtons { display: flex; flex-wrap: wrap; gap: 6px; }
 .muscleBtn { padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; color: var(--text-2); background: none; cursor: pointer; }
 .muscleBtnActive { background: var(--gold-light); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+
+.userGoalCard {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.userGoalCard h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.goalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.goalRow:last-child {
+  border-bottom: none;
+}
+
+.goalLabel {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.goalVal {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.head {
+  margin-bottom: 20px;
+}
+
+.head h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}

@@ -10,6 +10,7 @@ import Progress from './pages/Progress'
 import Exercises from './pages/Exercises'
 import Recommendations from './pages/Recommendations'
 import Profile from './pages/Profile'
+import Settings from './pages/Settings'
 
 export default function App() {
   return (
@@ -25,7 +26,7 @@ export default function App() {
         <Route path="/exercises" element={<Exercises />} />
         <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

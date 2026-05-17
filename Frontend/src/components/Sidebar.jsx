@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LayoutDashboard, Dumbbell, TrendingUp, Zap, Sparkles, User, Settings } from 'lucide-react'
+import { LayoutDashboard, Dumbbell, TrendingUp, Zap, Sparkles, User, Settings, Bell } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
 const NAV = [
@@ -18,16 +18,27 @@ const ACCOUNT = [
 
 export default function Sidebar() {
   const navigate = useNavigate()
-
-  const handleUpgrade = () => {
-    navigate('/recommendations')
-  }
+  const { user } = useAuth()
 
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
-        <div className={styles.brandName}>FitTrack Pro</div>
+        <div className={styles.brandName}>FitTrack</div>
         <div className={styles.brandSub}>Premium Member</div>
+      </div>
+
+      <div className={styles.userBar}>
+        <div className={styles.avatar}>
+          {(user?.full_name || user?.username || 'U')[0].toUpperCase()}
+        </div>
+        <div className={styles.userInfo}>
+          <div className={styles.userName}>{user?.full_name || user?.username}</div>
+          <div className={styles.userEmail}>{user?.email}</div>
+        </div>
+        <div className={styles.userIcons}>
+          <button className={styles.iconBtn}><Bell size={16} /></button>
+          <NavLink to="/settings" className={styles.iconBtn}><Settings size={16} /></NavLink>
+        </div>
       </div>
 
       <nav className={styles.nav}>
@@ -56,7 +67,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <button className={styles.upgradeBtn} onClick={handleUpgrade}>
+      <button className={styles.upgradeBtn} onClick={() => navigate('/recommendations')}>
         Upgrade to Gold
       </button>
     </aside>

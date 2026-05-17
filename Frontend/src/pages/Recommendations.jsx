@@ -1,20 +1,50 @@
 import { useEffect, useState } from 'react'
-import { recommendationAPI } from '../api/services'
+import { recommendationAPI, userAPI } from '../api/services'
 import { useAuth } from '../context/AuthContext'
 import styles from './Recommendations.module.css'
 
 const LEVELS = ['Beginner', 'Intermediate', 'Advanced']
 
+const GOAL_LABEL = {
+  weight_loss: 'Weight Loss',
+  muscle_gain: 'Muscle Gain',
+  endurance: 'Endurance',
+  flexibility: 'Flexibility',
+  general_fitness: 'General Fitness',
+  strength: 'Strength',
+}
+
+// Capitalize first letter of a string
+const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
+
 export default function Recommendations() {
   const { user } = useAuth()
   const [videos, setVideos] = useState([])
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [level, setLevel] = useState('Beginner')
+  const [level, setLevel] = useState(null) // null until user data is ready
   const [muscle, setMuscle] = useState('')
 
-  const load = (muscleGroup) => {
+  // Set level from user profile once user data is available
+  useEffect(() => {
+    if (user?.experience_level && level === null) {
+      setLevel(capitalize(user.experience_level))
+    }
+  }, [user])
+
+  // Fetch user stats for the progress banner
+  useEffect(() => {
+    userAPI.getStats().then(res => setStats(res.data)).catch(() => {})
+  }, [])
+
+  // Fetch recommendations filtered by muscle group, fitness goal, and experience level
+  const load = (muscleGroup, currentLevel) => {
     setLoading(true)
-    const params = muscleGroup ? { muscle_group: muscleGroup } : {}
+    const params = {
+      ...(muscleGroup ? { muscle_group: muscleGroup } : {}),
+      fitness_goal: user?.fitness_goal,
+      experience_level: (currentLevel || 'beginner').toLowerCase(),
+    }
     recommendationAPI.fetch(params)
       .then(res => {
         const data = res.data
@@ -23,6 +53,7 @@ export default function Recommendations() {
         else setVideos([])
       })
       .catch(() => {
+        // Fall back to cached recommendations on error
         recommendationAPI.getCached()
           .then(res => setVideos(res.data.videos || []))
           .catch(() => setVideos([]))
@@ -30,65 +61,62 @@ export default function Recommendations() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load(muscle) }, [muscle])
+  // Re-fetch when muscle filter or level changes, but only after level is initialized
+  useEffect(() => {
+    if (level !== null) load(muscle, level)
+  }, [muscle, level])
 
   const featured = videos[0]
   const rest = videos.slice(1, 4)
+  const activeLevel = level || capitalize(user?.experience_level) || 'Beginner'
 
   return (
     <div className={styles.page}>
-      <div className={styles.topNav}>
-        <div className={styles.navTabs}>
-          <button className={styles.navTab}>Overview</button>
-          <button className={styles.navTab}>Activity</button>
-          <button className={styles.navTab}>Nutrition</button>
-          <button className={styles.navTab}>Sleep</button>
-          <button className={styles.navTab}>Goals</button>
-        </div>
-        <div className={styles.navRight}>
-          <span>🔔</span>
-          <span>⚙️</span>
-          <div className={styles.avatar}>{(user?.full_name || user?.username || 'U')[0].toUpperCase()}</div>
-        </div>
-      </div>
-
       <div className={styles.content}>
         <div className={styles.mainCol}>
-          <h1>Smart Recommendations</h1>
-          <p className={styles.subtitle}>AI-powered insights tailored to your biometrics, recent performance, and long-term health goals.</p>
+          <div className={styles.head}>
+            <div>
+              <h1>Smart Recommendations</h1>
+              <p className={styles.subtitle}>
+                Curated playlists based on your goal —{' '}
+                <strong>{GOAL_LABEL[user?.fitness_goal] || user?.fitness_goal || 'General Fitness'}</strong>
+              </p>
+            </div>
+          </div>
 
+          {/* Level tabs — only the user's profile level is clickable */}
           <div className={styles.levelTabs}>
-            {LEVELS.map(l => (
-              <button
-                key={l}
-                className={`${styles.levelTab} ${level === l ? styles.levelActive : ''}`}
-                onClick={() => setLevel(l)}
-              >
-                {l}
-              </button>
-            ))}
+            {LEVELS.map(l => {
+              const isUserLevel = l.toLowerCase() === user?.experience_level?.toLowerCase()
+              return (
+                <button
+                  key={l}
+                  className={`${styles.levelTab} ${activeLevel === l ? styles.levelActive : ''} ${!isUserLevel ? styles.levelDisabled : ''}`}
+                  onClick={() => isUserLevel && setLevel(l)}
+                  disabled={!isUserLevel}
+                >
+                  {l}
+                </button>
+              )
+            })}
           </div>
 
           {loading ? (
             <div className={styles.loading}><span className={styles.spinner} /></div>
           ) : (
             <>
+              {/* Featured playlist card */}
               {featured ? (
                 <div className={styles.featuredCard}>
                   <div className={styles.featuredImg}>
                     {featured.thumbnail && <img src={featured.thumbnail} alt={featured.title} />}
                     <div className={styles.featuredOverlay}>
-                      <span className={styles.nextLabel}>NEXT SESSION IDEA</span>
+                      <span className={styles.nextLabel}>RECOMMENDED FOR YOU</span>
                       <h2>{featured.title}</h2>
                       <p>{featured.description}</p>
-                      <div className={styles.featuredMeta}>
-                        <span>⏱ 45 Minutes</span>
-                        <span>🔥 320 kcal</span>
-                        <span>⚡ Low Intensity</span>
-                      </div>
                       {featured.url && (
                         <a href={featured.url} target="_blank" rel="noopener noreferrer" className={styles.startBtn}>
-                          Start Workout Plan
+                          Watch Playlist
                         </a>
                       )}
                     </div>
@@ -96,10 +124,11 @@ export default function Recommendations() {
                 </div>
               ) : (
                 <div className={styles.emptyFeatured}>
-                  <p>No recommendations available. Try fetching fresh suggestions below.</p>
+                  <p>No recommendations available yet. Keep logging workouts to get personalized suggestions!</p>
                 </div>
               )}
 
+              {/* Additional playlist cards */}
               <div className={styles.videoGrid}>
                 {rest.map((v, i) => (
                   <a key={i} href={v.url} target="_blank" rel="noopener noreferrer" className={styles.videoCard}>
@@ -110,13 +139,11 @@ export default function Recommendations() {
                       <div className={styles.videoTitle}>{v.title}</div>
                       <div className={styles.videoDesc}>{v.description}</div>
                       <div className={styles.videoLevel}>
-                        <span className={styles.levelBadge}>Level: Beginner</span>
-                        <span className={styles.addBtn}>+</span>
+                        <span className={styles.levelBadge}>{activeLevel}</span>
                       </div>
                     </div>
                   </a>
                 ))}
-
                 {rest.length === 0 && !featured && (
                   <p className={styles.noVideos}>No video recommendations found.</p>
                 )}
@@ -124,50 +151,54 @@ export default function Recommendations() {
             </>
           )}
 
-          <div className={styles.progressBanner}>
-            <div>
-              <h3>You're on a roll, {user?.full_name?.split(' ')[0] || user?.username}!</h3>
-              <p>Keep tracking your workouts to unlock better recommendations.</p>
-              <div className={styles.bannerStats}>
-                <div>
-                  <span className={styles.bannerVal}>86%</span>
-                  <span className={styles.bannerLabel}>GOAL COMPLETION</span>
-                </div>
-                <div>
-                  <span className={styles.bannerVal}>12.4k</span>
-                  <span className={styles.bannerLabel}>AVG CALORIES</span>
+          {/* Progress banner using real stats from DB */}
+          {stats && (
+            <div className={styles.progressBanner}>
+              <div>
+                <h3>You're on a roll, {user?.full_name?.split(' ')[0] || user?.username}!</h3>
+                <p>Keep tracking your workouts to unlock better recommendations.</p>
+                <div className={styles.bannerStats}>
+                  <div>
+                    <span className={styles.bannerVal}>{stats.total_sessions ?? 0}</span>
+                    <span className={styles.bannerLabel}>TOTAL SESSIONS</span>
+                  </div>
+                  <div>
+                    <span className={styles.bannerVal}>{stats.total_minutes ?? 0}</span>
+                    <span className={styles.bannerLabel}>TOTAL MINUTES</span>
+                  </div>
+                  <div>
+                    <span className={styles.bannerVal}>{stats.total_volume_kg?.toLocaleString() ?? 0}</span>
+                    <span className={styles.bannerLabel}>VOLUME (KG)</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className={styles.bigCircle}>
-              <svg width="90" height="90" viewBox="0 0 90 90">
-                <circle cx="45" cy="45" r="38" fill="none" stroke="var(--border)" strokeWidth="7"/>
-                <circle cx="45" cy="45" r="38" fill="none" stroke="var(--gold)" strokeWidth="7"
-                  strokeDasharray={`${2*Math.PI*38*0.75} ${2*Math.PI*38*0.25}`}
-                  strokeDashoffset={2*Math.PI*38*0.25}
-                  transform="rotate(-90 45 45)"
-                />
-                <text x="45" y="50" textAnchor="middle" fontSize="16" fontWeight="700" fill="var(--text)">75%</text>
-              </svg>
-            </div>
-          </div>
+          )}
         </div>
 
         <div className={styles.sideCol}>
-          <div className={styles.insightCard}>
-            <h3>Recovery Insight</h3>
-            <p>Your HRV (Heart Rate Variability) is lower than usual today. We suggest prioritizing sleep tonight.</p>
-          </div>
-
-          <div className={styles.mealCard}>
-            <div className={styles.mealIcon}>🍽</div>
-            <div>
-              <h3>Post-Workout Meal</h3>
-              <p>Grilled Salmon with Quinoa and Avocado. High in Omega-3 to reduce muscle inflammation.</p>
-              <a href="#" className={styles.recipeLink}>View Full Recipe →</a>
+          {/* User profile summary pulled from DB */}
+          <div className={styles.userGoalCard}>
+            <h3>Your Profile</h3>
+            <div className={styles.goalRow}>
+              <span className={styles.goalLabel}>Fitness Goal</span>
+              <span className={styles.goalVal}>{GOAL_LABEL[user?.fitness_goal] || '—'}</span>
+            </div>
+            <div className={styles.goalRow}>
+              <span className={styles.goalLabel}>Experience</span>
+              <span className={styles.goalVal}>{capitalize(user?.experience_level) || '—'}</span>
+            </div>
+            <div className={styles.goalRow}>
+              <span className={styles.goalLabel}>Weight</span>
+              <span className={styles.goalVal}>{user?.weight_kg ? `${user.weight_kg} kg` : '—'}</span>
+            </div>
+            <div className={styles.goalRow}>
+              <span className={styles.goalLabel}>Height</span>
+              <span className={styles.goalVal}>{user?.height_cm ? `${user.height_cm} cm` : '—'}</span>
             </div>
           </div>
 
+          {/* Muscle group filter */}
           <div className={styles.muscleFilter}>
             <h3>Filter by Muscle</h3>
             <div className={styles.muscleButtons}>

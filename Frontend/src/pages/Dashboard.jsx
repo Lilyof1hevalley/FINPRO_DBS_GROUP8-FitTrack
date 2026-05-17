@@ -1,26 +1,41 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { userAPI, workoutAPI } from '../api/services'
+import { userAPI, workoutAPI, progressAPI } from '../api/services'
 import { Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import styles from './Dashboard.module.css'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const WEEKLY_GOAL = 5 // target sessions per week
 
 export default function Dashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [recent, setRecent] = useState([])
+  const [weeklyData, setWeeklyData] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([userAPI.getStats(), workoutAPI.getSessions({ limit: 5 })])
-      .then(([sRes, wRes]) => {
+    Promise.all([
+      userAPI.getStats(),
+      workoutAPI.getSessions({ limit: 5 }),
+      progressAPI.workoutFrequency({ weeks: 7 }),
+    ])
+      .then(([sRes, wRes, fRes]) => {
         setStats(sRes.data)
         setRecent(wRes.data.data || [])
+
+        const freqMap = {}
+        fRes.data.forEach(row => {
+          const day = new Date(row.week_start).toLocaleDateString('en-US', { weekday: 'short' })
+          freqMap[day] = parseInt(row.session_count)
+        })
+        setWeeklyData(DAYS.map(day => ({ day, value: freqMap[day] || 0 })))
       })
-      .catch(() => {})
+      .catch(() => {
+        setWeeklyData(DAYS.map(day => ({ day, value: 0 })))
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -31,32 +46,21 @@ export default function Dashboard() {
     return 'Good Evening'
   }
 
-  const weeklyData = DAYS.map((day) => ({
-    day,
-    value: Math.floor(Math.random() * 80 + 20),
-  }))
-
   const bmi = user?.weight_kg && user?.height_cm
     ? (user.weight_kg / Math.pow(user.height_cm / 100, 2)).toFixed(1)
     : null
 
+  const estimatedCalories = stats?.total_volume_kg
+    ? Math.round(stats.total_volume_kg * 0.05)
+    : 0
+
+  // Weekly goal progress based on this week's sessions
+  const thisWeekSessions = weeklyData.reduce((sum, d) => sum + d.value, 0)
+  const goalPct = Math.min(100, Math.round((thisWeekSessions / WEEKLY_GOAL) * 100))
+  const circumference = 2 * Math.PI * 50
+
   return (
     <div className={styles.page}>
-      <div className={styles.topNav}>
-        <div className={styles.navTabs}>
-          <button className={`${styles.navTab} ${styles.activeTab}`}>Overview</button>
-          <button className={styles.navTab}>Activity</button>
-          <button className={styles.navTab}>Nutrition</button>
-          <button className={styles.navTab}>Sleep</button>
-          <button className={styles.navTab}>Goals</button>
-        </div>
-        <div className={styles.navRight}>
-          <span className={styles.notifIcon}>🔔</span>
-          <span className={styles.notifIcon}>⚙️</span>
-          <div className={styles.avatar}>{(user?.full_name || user?.username || 'U')[0].toUpperCase()}</div>
-        </div>
-      </div>
-
       {loading ? (
         <div className={styles.loading}><span className={styles.spinner} /></div>
       ) : (
@@ -67,7 +71,7 @@ export default function Dashboard() {
                 <h1>{greeting()}, {user?.full_name?.split(' ')[0] || user?.username} 👋</h1>
                 <p>
                   {stats?.total_sessions > 0
-                    ? `You're on a ${stats.total_sessions}-session streak! Your body is recovering well.`
+                    ? `You've completed ${stats.total_sessions} sessions! Your body is recovering well.`
                     : 'Start your fitness journey today!'}
                 </p>
                 {stats?.total_sessions > 0 && <p>Ready for your next workout?</p>}
@@ -76,7 +80,6 @@ export default function Dashboard() {
                 <div className={styles.heroStat}>
                   <span className={styles.heroStatLabel}>WEIGHT</span>
                   <span className={styles.heroStatValue}>{user?.weight_kg ?? '—'} <small>kg</small></span>
-                  <span className={styles.heroStatSub}>↑ 0.2%</span>
                 </div>
                 <div className={styles.heroStat}>
                   <span className={styles.heroStatLabel}>HEIGHT</span>
@@ -86,7 +89,12 @@ export default function Dashboard() {
                   <div className={`${styles.heroStat} ${styles.heroStatBmi}`}>
                     <span className={styles.heroStatLabel}>BMI</span>
                     <span className={styles.heroStatValue}>{bmi}</span>
-                    <span className={styles.bmiTag}>HEALTHY</span>
+                    <span className={styles.bmiTag}>
+                      {bmi < 18.5 ? 'UNDERWEIGHT'
+                        : bmi < 25 ? 'HEALTHY'
+                        : bmi < 30 ? 'OVERWEIGHT'
+                        : 'OBESE'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -110,26 +118,25 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.bottomRow}>
+              {/* Workout Goals — based on real weekly session data */}
               <div className={styles.card}>
                 <h2>Workout Goals</h2>
                 <div className={styles.goalRing}>
                   <svg width="120" height="120" viewBox="0 0 120 120">
                     <circle cx="60" cy="60" r="50" fill="none" stroke="#e8e5df" strokeWidth="10"/>
                     <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gold)" strokeWidth="10"
-                      strokeDasharray={`${2 * Math.PI * 50 * 0.75} ${2 * Math.PI * 50 * 0.25}`}
-                      strokeDashoffset={2 * Math.PI * 50 * 0.25}
+                      strokeDasharray={`${circumference * (goalPct / 100)} ${circumference * (1 - goalPct / 100)}`}
+                      strokeDashoffset={circumference * 0.25}
                       strokeLinecap="round"
                       transform="rotate(-90 60 60)"
                     />
-                    <text x="60" y="60" textAnchor="middle" dy="5" fontSize="18" fontWeight="700" fill="var(--text)">75%</text>
+                    <text x="60" y="60" textAnchor="middle" dy="5" fontSize="18" fontWeight="700" fill="var(--text)">{goalPct}%</text>
                     <text x="60" y="76" textAnchor="middle" fontSize="10" fill="var(--text-3)">COMPLETED</text>
                   </svg>
                 </div>
                 <div className={styles.goalStats}>
                   <span className={styles.goalDot} style={{ background: 'var(--gold)' }} />
-                  <span>Strength: 90%</span>
-                  <span className={styles.goalDot} style={{ background: '#c8940d', marginLeft: 12 }} />
-                  <span>Cardio: 65%</span>
+                  <span>This week: {thisWeekSessions}/{WEEKLY_GOAL} sessions</span>
                 </div>
               </div>
 
@@ -174,57 +181,21 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-
-            <div className={styles.card}>
-              <h2>Sleep Analysis</h2>
-              <p className={styles.sleepDesc}>Track your sleep for personalized recovery insights.</p>
-              <div className={styles.sleepStats}>
-                <div>
-                  <span className={styles.sleepLabel}>DEEP SLEEP</span>
-                  <span className={styles.sleepVal}>—</span>
-                </div>
-                <div>
-                  <span className={styles.sleepLabel}>REM</span>
-                  <span className={styles.sleepVal}>—</span>
-                </div>
-                <div>
-                  <span className={styles.sleepLabel}>EFFICIENCY</span>
-                  <span className={styles.sleepVal}>—</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className={styles.sideCol}>
-            <div className={styles.card}>
-              <div className={styles.heartHeader}>
-                <span className={styles.metricLabel}>HEART RATE</span>
-                <span className={styles.heartIcon}>♥</span>
-              </div>
-              <div className={styles.heartVal}>{stats?.total_sessions > 0 ? '112' : '—'} <small>bpm</small></div>
-              <div className={styles.heartChart}>
-                <svg viewBox="0 0 200 60" width="100%" height="60">
-                  <polyline
-                    points="0,45 20,45 30,20 40,50 55,50 65,15 80,50 95,50 105,25 115,50 130,50 140,18 155,50 170,50 180,28 195,50 200,50"
-                    fill="none" stroke="#c0392b" strokeWidth="2" strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <p className={styles.heartSub}>Resting Heart Rate: 62 bpm</p>
-            </div>
-
             <div className={`${styles.card} ${styles.cardDark}`}>
               <div className={styles.metricRow}>
                 <div>
                   <span className={styles.metricLabel}>ACTIVE CALORIES</span>
-                  <div className={styles.metricVal}>{stats?.total_sessions > 0 ? '1,840' : '0'} <small>kcal</small></div>
-                  <div className={styles.metricSub}>92% of daily goal</div>
+                  <div className={styles.metricVal}>{estimatedCalories.toLocaleString()} <small>kcal</small></div>
+                  <div className={styles.metricSub}>Estimated from workouts</div>
                 </div>
                 <div className={styles.metricCircle}>
                   <svg width="50" height="50" viewBox="0 0 50 50">
                     <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4"/>
                     <circle cx="25" cy="25" r="20" fill="none" stroke="white" strokeWidth="4"
-                      strokeDasharray={`${2*Math.PI*20*0.92} ${2*Math.PI*20*0.08}`}
+                      strokeDasharray={`${2*Math.PI*20} ${2*Math.PI*20*0}`}
                       strokeDashoffset={2*Math.PI*20*0.25}
                       transform="rotate(-90 25 25)"
                     />
@@ -234,14 +205,19 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className={`${styles.card} ${styles.cardGold}`}>
-              <div className={styles.metricRow}>
-                <div>
-                  <span className={styles.metricLabel}>WATER INTAKE</span>
-                  <div className={styles.metricVal}>2.4 <small>Liters</small></div>
-                  <div className={styles.metricSub}>Goal: 3.0 L</div>
-                </div>
-                <div className={styles.dropIcon}>💧</div>
+            <div className={styles.card}>
+              <h3 className={styles.sideTitle}>Total Stats</h3>
+              <div className={styles.topEx}>
+                <span className={styles.topExName}>Total Sessions</span>
+                <span className={styles.topExSets}>{stats?.total_sessions ?? 0}</span>
+              </div>
+              <div className={styles.topEx}>
+                <span className={styles.topExName}>Total Minutes</span>
+                <span className={styles.topExSets}>{stats?.total_minutes ?? 0} min</span>
+              </div>
+              <div className={styles.topEx}>
+                <span className={styles.topExName}>Total Volume</span>
+                <span className={styles.topExSets}>{stats?.total_volume_kg?.toLocaleString() ?? 0} kg</span>
               </div>
             </div>
 
