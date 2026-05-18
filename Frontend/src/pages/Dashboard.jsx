@@ -7,9 +7,6 @@ import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import styles from './Dashboard.module.css'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const WEEKLY_GOAL = user?.experience_level === 'advanced' ? 5
-  : user?.experience_level === 'intermediate' ? 4
-  : 3 // beginner default
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -17,6 +14,11 @@ export default function Dashboard() {
   const [recent, setRecent] = useState([])
   const [weeklyData, setWeeklyData] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // PINDAH KE SINI: Sekarang variabel user sudah aman dan bisa dibaca tanpa bikin crash
+  const WEEKLY_GOAL = user?.experience_level === 'advanced' ? 5
+    : user?.experience_level === 'intermediate' ? 4
+    : 3 // beginner default
 
   useEffect(() => {
     Promise.all([
