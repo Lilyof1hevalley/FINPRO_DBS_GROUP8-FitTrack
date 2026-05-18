@@ -7,7 +7,9 @@ import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import styles from './Dashboard.module.css'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const WEEKLY_GOAL = 5 // target sessions per week
+const WEEKLY_GOAL = user?.experience_level === 'advanced' ? 5
+  : user?.experience_level === 'intermediate' ? 4
+  : 3 // beginner default
 
 export default function Dashboard() {
   const { user } = useAuth()
